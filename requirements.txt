@@ -4,4 +4,6 @@ SpeechRecognition
 google-generativeai
 gTTS
 pyautogui
+streamlit
+supabase
 Pillow
