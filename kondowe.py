@@ -14,14 +14,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 3. Credentials kutoka kwenye secrets.toml (Salama kwa GitHub)
-try:
-    SUPABASE_URL = st.secrets["SUPABASE_URL"]
-    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
-    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-except Exception as e:
-    st.error("Duh! Secrets hazijaonekana. Hakikisha file la .streamlit/secrets.toml lipo na lina data sahihi.")
-    st.stop()
+# 3. Credentials (Hardcoded - Moja kwa moja kwenye kodi)
+# Hapa tumeweka data zako moja kwa moja ili usihitaji file la secrets.toml
+SUPABASE_URL = "https://xickklzlmwaobzobwyws.supabase.co"
+SUPABASE_KEY = "sb_publishable_6L6eHvGEeEaVwICwCVZpXg_WV5zaRog"
+GROQ_API_KEY = "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"
 
 # 4. HTML/CSS/JS Interface
 html_code = f"""
@@ -38,7 +35,6 @@ html_code = f"""
             --sidebar-bg: #f0f4f9;
         }}
 
-        /* Page Layout & Scroll Control */
         body, html {{ 
             margin: 0; padding: 0; height: 100vh; width: 100vw; 
             overflow: hidden; font-family: 'Outfit', sans-serif; 
@@ -47,7 +43,6 @@ html_code = f"""
 
         .app-wrapper {{ display: flex; height: 100vh; width: 100vw; overflow: hidden; }}
 
-        /* Sidebar */
         .sidebar {{
             width: 270px; background: var(--sidebar-bg); padding: 20px;
             display: flex; flex-direction: column; border-right: 1px solid #e3e3e3;
@@ -60,12 +55,9 @@ html_code = f"""
             font-weight: 600; cursor: pointer; margin-bottom: 25px; 
             box-shadow: 0 4px 10px rgba(66, 133, 244, 0.2); transition: 0.3s;
         }}
-        .new-chat-btn:hover {{ transform: translateY(-2px); box-shadow: 0 6px 15px rgba(66, 133, 244, 0.3); }}
 
-        /* Main Area */
         .main-content {{ flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }}
 
-        /* Header */
         .chat-header {{
             padding: 15px 30px; background: white; border-bottom: 1px solid #f0f0f0;
             display: flex; align-items: center; flex-shrink: 0;
@@ -76,14 +68,10 @@ html_code = f"""
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }}
 
-        /* CHAT CONTAINER: Hapa pekee ndipo panascroll */
         .chat-container {{
             flex: 1; overflow-y: auto; padding: 20px 15%; 
             display: flex; flex-direction: column; scroll-behavior: smooth;
         }}
-
-        .chat-container::-webkit-scrollbar {{ width: 6px; }}
-        .chat-container::-webkit-scrollbar-thumb {{ background: #e0e0e0; border-radius: 10px; }}
 
         .welcome-screen h1 {{
             font-size: 2.8rem; font-weight: 700; text-align: center; margin-top: 10vh;
@@ -91,7 +79,6 @@ html_code = f"""
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }}
 
-        /* Messages */
         .message {{ margin-bottom: 30px; max-width: 85%; line-height: 1.7; font-size: 16px; position: relative; }}
         
         .user-message {{ 
@@ -105,18 +92,15 @@ html_code = f"""
             border-image: linear-gradient(to bottom, var(--gemini-blue), var(--gemini-red), var(--gemini-yellow), var(--gemini-green)) 1;
         }}
 
-        /* Input Area */
         .input-wrapper {{ padding: 20px 15%; background: white; flex-shrink: 0; }}
         .input-box {{
             display: flex; background: #f0f4f9; padding: 8px 25px; 
             border-radius: 35px; align-items: center; transition: 0.3s;
         }}
-        .input-box:focus-within {{ background: white; border: 1px solid #d1d5db; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }}
         
         input {{ flex: 1; border: none; background: transparent; outline: none; font-size: 16px; padding: 12px; }}
         #send-btn {{ cursor: pointer; font-size: 26px; color: var(--gemini-blue); border: none; background: none; }}
 
-        /* Colorful Loader */
         #loader {{ display: none; margin-bottom: 15px; padding-left: 15%; }}
         .gemini-loader {{
             width: 25px; height: 25px; border: 4px solid #f3f3f3;
@@ -127,7 +111,7 @@ html_code = f"""
         @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
 
         .history-item {{ padding: 12px; cursor: pointer; border-radius: 12px; font-size: 14px; margin-bottom: 5px; transition: 0.2s; }}
-        .history-item:hover {{ background: #e2e7ed; color: var(--gemini-blue); font-weight: 600; }}
+        .history-item:hover {{ background: #e2e7ed; }}
     </style>
 </head>
 <body>
@@ -162,6 +146,7 @@ html_code = f"""
     </div>
 
     <script>
+        // Tunatumia vigezo vilivyotoka kwenye Python
         const _client = supabase.createClient("{SUPABASE_URL}", "{SUPABASE_KEY}");
         let currentChatId = null;
 
@@ -170,7 +155,6 @@ html_code = f"""
             document.getElementById('chat-container').innerHTML = `
                 <div style="text-align:center; margin-top:10vh;">
                     <h1 style="background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem; font-weight:700;">Chat Mpya</h1>
-                    <p style="color: #5f6368;">Anza kuuliza maswali yako hapa.</p>
                 </div>`;
         }}
 
