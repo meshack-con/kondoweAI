@@ -1,0 +1,7 @@
+psutil
+streamlit-mic-recorder
+SpeechRecognition
+google-generativeai
+gTTS
+pyautogui
+Pillow
