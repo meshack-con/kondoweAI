@@ -7,19 +7,12 @@ st.set_page_config(page_title="KONDOWE AI PRO", layout="wide", initial_sidebar_s
 # 2. KUONDOA BLACK BARS NA KUREKEBISHA BACKGROUND
 st.markdown("""
     <style>
-        /* Futa kila kitu cha Streamlit kinacholeta kero */
         .block-container { padding: 0 !important; max-width: 100% !important; height: 100vh !important; }
         header, footer { visibility: hidden !important; }
         .stApp { background-color: white !important; }
-        
-        /* Hakikisha iframe inachukua screen nzima bila mabaki ya chini */
         iframe { 
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw; 
-            height: 100vh !important; 
-            border: none;
+            position: fixed; top: 0; left: 0; width: 100vw; 
+            height: 100vh !important; border: none;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -37,7 +30,7 @@ html_code = f"""
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {{
             --gemini-blue: #4285F4;
@@ -52,68 +45,64 @@ html_code = f"""
 
         .app-wrapper {{ display: flex; height: 100vh; width: 100vw; position: relative; }}
 
-        /* SIDEBAR - Inatokea tu ikiguswa */
+        /* SIDEBAR */
         .sidebar {{
-            position: fixed;
-            left: -300px; /* Inajificha hapa */
-            top: 0;
-            height: 100%;
-            width: var(--sidebar-width);
-            background: #f0f4f9;
-            z-index: 2000;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 20px;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
+            position: fixed; left: -300px; top: 0; height: 100%;
+            width: var(--sidebar-width); background: #f0f4f9; z-index: 2000;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); padding: 20px;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.1); display: flex; flex-direction: column;
         }}
         .sidebar.active {{ left: 0; }}
 
-        /* OVERLAY - Inafunika chat sidebar ikiwa wazi */
         .overlay {{
             position: fixed; display: none; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.2); z-index: 1999;
         }}
         .overlay.active {{ display: block; }}
 
-        .main-content {{ 
-            flex: 1; display: flex; flex-direction: column; 
-            height: 100vh; width: 100%; position: relative;
-        }}
+        .main-content {{ flex: 1; display: flex; flex-direction: column; height: 100vh; width: 100%; position: relative; }}
 
         /* HEADER */
         .chat-header {{
             height: 60px; padding: 0 20px; background: white; 
-            display: flex; align-items: center; border-bottom: 1px solid #f0f0f0;
-            z-index: 100;
+            display: flex; align-items: center; border-bottom: 1px solid #f0f0f0; z-index: 100;
         }}
         #menu-btn {{ font-size: 26px; cursor: pointer; border: none; background: none; margin-right: 15px; }}
 
-        /* CHAT CONTAINER - HAPA TU NDIPO PANASCROLL */
+        /* CHAT CONTAINER */
         .chat-container {{
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px 15% 120px 15%; /* Padding ya chini imeongezwa kwa ajili ya input box */
-            scroll-behavior: smooth;
-            background: white;
+            flex: 1; overflow-y: auto; padding: 20px 15% 150px 15%; 
+            scroll-behavior: smooth; background: white;
         }}
 
-        /* INPUT AREA - Imepandishwa juu zaidi */
-        .input-wrapper {{ 
-            position: fixed;
-            bottom: 30px; /* Ipawe juu kidogo toka chini kabisa */
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70%;
-            max-width: 800px;
-            z-index: 1000;
-            background: transparent;
+        /* WELCOME TEXT STYLING */
+        .welcome-title {{
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
         }}
+        .welcome-subtitle {{
+            font-size: 1.2rem;
+            color: #757575;
+            font-weight: 400;
+        }}
+
+        /* INPUT AREA */
+        .input-wrapper {{ 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 800px; z-index: 1000; transition: all 0.3s ease;
+        }}
+        
+        .input-wrapper.raised {{ bottom: 350px !important; }}
+
         .input-box {{
             display: flex; background: #f0f4f9; padding: 10px 25px; 
             border-radius: 40px; align-items: center; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;
         }}
         input {{ flex: 1; border: none; background: transparent; outline: none; font-size: 16px; padding: 10px; }}
         
@@ -122,35 +111,35 @@ html_code = f"""
         .assistant-message {{ align-self: flex-start; border-left: 4px solid var(--gemini-blue); padding-left: 15px; }}
 
         @media (max-width: 768px) {{
-            .chat-container {{ padding: 20px 5% 120px 5%; }}
-            .input-wrapper {{ width: 90%; bottom: 20px; }}
+            .welcome-title {{ font-size: 2.2rem; }}
+            .chat-container {{ padding: 20px 5% 180px 5%; }}
+            .input-wrapper {{ width: 92%; }}
+            .input-wrapper.raised {{ bottom: 310px !important; }}
         }}
     </style>
 </head>
 <body>
-
     <div class="overlay" id="overlay"></div>
-    
     <div class="sidebar" id="sidebar">
         <h3 style="margin-top:0;">Menu</h3>
         <button style="background:white; border:1px solid #ddd; padding:12px; border-radius:25px; cursor:pointer; font-weight:600;" onclick="location.reload()">✨ New Chat</button>
-        <div id="history-list" style="margin-top:20px;"></div>
     </div>
 
     <div class="app-wrapper">
         <div class="main-content">
             <div class="chat-header">
                 <button id="menu-btn">☰</button>
-                <b style="font-size:1.2rem; background: linear-gradient(to right, #4285F4, #EA4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KONDOWE AI PRO</b>
+                <b style="font-size:1.1rem; color:#444;">KONDOWE AI</b>
             </div>
 
             <div class="chat-container" id="chat-container">
-                <div id="welcome-screen" style="text-align:center; margin-top:15vh;">
-                    <h1 style="color:#444; font-size:2rem;">Nikupe msaada gani?</h1>
+                <div id="welcome-screen" style="text-align:center; margin-top:18vh;">
+                    <div class="welcome-title">mimi ni kondowe ai</div>
+                    <div class="welcome-subtitle">naweza kukusaidia nini?</div>
                 </div>
             </div>
 
-            <div class="input-wrapper">
+            <div class="input-wrapper" id="input-wrap">
                 <div class="input-box">
                     <input type="text" id="user-input" placeholder="Uliza chochote..." autocomplete="off">
                     <button id="send-btn" style="border:none; background:none; color:var(--gemini-blue); font-size:26px; cursor:pointer;">➤</button>
@@ -162,35 +151,38 @@ html_code = f"""
     <script>
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
-        const menuBtn = document.getElementById('menu-btn');
+        const inputWrap = document.getElementById('input-wrap');
+        const userInput = document.getElementById('user-input');
 
-        // Fungua/Funga Sidebar
-        menuBtn.onclick = () => {{
-            sidebar.classList.add('active');
-            overlay.classList.add('active');
-        }};
+        document.getElementById('menu-btn').onclick = () => {{ sidebar.classList.add('active'); overlay.classList.add('active'); }};
+        overlay.onclick = () => {{ sidebar.classList.remove('active'); overlay.classList.remove('active'); }};
 
-        overlay.onclick = () => {{
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        }};
+        userInput.onfocus = () => {{ inputWrap.classList.add('raised'); }};
+        userInput.onblur = () => {{ setTimeout(() => inputWrap.classList.remove('raised'), 200); }};
 
         const _client = supabase.createClient("{SUPABASE_URL}", "{SUPABASE_KEY}");
         
         async function sendMessage() {{
-            const input = document.getElementById('user-input');
-            const msg = input.value.trim();
+            const msg = userInput.value.trim();
             if(!msg) return;
 
             document.getElementById('welcome-screen').style.display = 'none';
             appendMsg(msg, 'user');
-            input.value = '';
+            userInput.value = '';
+            userInput.blur();
 
             try {{
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {{
                     method: "POST",
                     headers: {{ "Authorization": "Bearer {GROQ_API_KEY}", "Content-Type": "application/json" }},
-                    body: JSON.stringify({{ model: "llama-3.3-70b-versatile", messages: [{{ role: "user", content: msg }}], stream: true }})
+                    body: JSON.stringify({{ 
+                        model: "llama-3.3-70b-versatile", 
+                        messages: [
+                            {{ role: "system", content: "Wewe unaitwa KONDOWE AI. Kila unapoulizwa wewe ni nani, jitambulishe kama KONDOWE AI. Jibu maswali kwa ufasaha na upendo." }},
+                            {{ role: "user", content: msg }}
+                        ], 
+                        stream: true 
+                    }})
                 }});
 
                 const reader = res.body.getReader();
@@ -229,7 +221,7 @@ html_code = f"""
         }}
 
         document.getElementById('send-btn').onclick = sendMessage;
-        document.getElementById('user-input').onkeypress = (e) => {{ if(e.key === 'Enter') sendMessage(); }};
+        userInput.onkeypress = (e) => {{ if(e.key === 'Enter') sendMessage(); }};
     </script>
 </body>
 </html>
