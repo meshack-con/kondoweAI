@@ -4,13 +4,23 @@ import streamlit.components.v1 as components
 # 1. Sanidi Ukurasa
 st.set_page_config(page_title="KONDOWE AI PRO", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. Safisha Streamlit Background (Dawa ya Black/Grey interface)
+# 2. KUONDOA BLACK BARS NA KUREKEBISHA BACKGROUND
 st.markdown("""
     <style>
+        /* Futa kila kitu cha Streamlit kinacholeta kero */
         .block-container { padding: 0 !important; max-width: 100% !important; height: 100vh !important; }
         header, footer { visibility: hidden !important; }
-        .stHtml { background-color: white !important; }
-        iframe { height: 100vh !important; width: 100vw !important; border: none; }
+        .stApp { background-color: white !important; }
+        
+        /* Hakikisha iframe inachukua screen nzima bila mabaki ya chini */
+        iframe { 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw; 
+            height: 100vh !important; 
+            border: none;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -19,7 +29,7 @@ SUPABASE_URL = "https://xickklzlmwaobzobwyws.supabase.co"
 SUPABASE_KEY = "sb_publishable_6L6eHvGEeEaVwICwCVZpXg_WV5zaRog"
 GROQ_API_KEY = "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"
 
-# 4. HTML/CSS/JS Interface iliyoboreshwa
+# 4. HTML/CSS/JS Interface
 html_code = f"""
 <!DOCTYPE html>
 <html lang="sw">
@@ -31,10 +41,7 @@ html_code = f"""
     <style>
         :root {{
             --gemini-blue: #4285F4;
-            --gemini-red: #EA4335;
-            --gemini-yellow: #FBBC05;
-            --gemini-green: #34A853;
-            --sidebar-bg: #f0f4f9;
+            --sidebar-width: 280px;
         }}
 
         body, html {{ 
@@ -43,103 +50,110 @@ html_code = f"""
             background-color: #ffffff;
         }}
 
-        .app-wrapper {{ display: flex; height: 100vh; width: 100vw; overflow: hidden; }}
+        .app-wrapper {{ display: flex; height: 100vh; width: 100vw; position: relative; }}
 
-        /* Sidebar Responsive */
+        /* SIDEBAR - Inatokea tu ikiguswa */
         .sidebar {{
-            width: 270px; background: var(--sidebar-bg); padding: 20px;
-            display: flex; flex-direction: column; border-right: 1px solid #e3e3e3;
-            transition: 0.3s ease; flex-shrink: 0; z-index: 1001;
+            position: fixed;
+            left: -300px; /* Inajificha hapa */
+            top: 0;
+            height: 100%;
+            width: var(--sidebar-width);
+            background: #f0f4f9;
+            z-index: 2000;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 20px;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }}
+        .sidebar.active {{ left: 0; }}
+
+        /* OVERLAY - Inafunika chat sidebar ikiwa wazi */
+        .overlay {{
+            position: fixed; display: none; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.2); z-index: 1999;
+        }}
+        .overlay.active {{ display: block; }}
 
         .main-content {{ 
             flex: 1; display: flex; flex-direction: column; 
-            height: 100vh; position: relative; background: white;
+            height: 100vh; width: 100%; position: relative;
         }}
 
-        /* Header - Fixed */
+        /* HEADER */
         .chat-header {{
-            height: 60px; padding: 0 25px; background: white; 
-            border-bottom: 1px solid #f0f0f0; display: flex; 
-            align-items: center; gap: 15px; flex-shrink: 0;
+            height: 60px; padding: 0 20px; background: white; 
+            display: flex; align-items: center; border-bottom: 1px solid #f0f0f0;
+            z-index: 100;
         }}
-
-        .logo-text {{ 
-            font-weight: 800; font-size: 1.3rem; 
-            background: linear-gradient(to right, var(--gemini-blue), var(--gemini-red), var(--gemini-yellow), var(--gemini-green));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }}
+        #menu-btn {{ font-size: 26px; cursor: pointer; border: none; background: none; margin-right: 15px; }}
 
         /* CHAT CONTAINER - HAPA TU NDIPO PANASCROLL */
         .chat-container {{
-            flex: 1; overflow-y: auto; padding: 20px 15%; 
-            display: flex; flex-direction: column; background: white;
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px 15% 120px 15%; /* Padding ya chini imeongezwa kwa ajili ya input box */
             scroll-behavior: smooth;
+            background: white;
         }}
 
-        /* Message Styling */
-        .message {{ margin-bottom: 25px; max-width: 85%; line-height: 1.7; font-size: 16px; color: #1f1f1f; }}
-        .user-message {{ 
-            align-self: flex-end; background: #f0f4f9; padding: 15px 22px; 
-            border-radius: 22px 22px 4px 22px; border-left: 4px solid var(--gemini-blue);
-        }}
-        .assistant-message {{ 
-            align-self: flex-start; padding-left: 15px; border-left: 4px solid transparent;
-            border-image: linear-gradient(to bottom, var(--gemini-blue), var(--gemini-red), var(--gemini-yellow), var(--gemini-green)) 1;
-        }}
-
-        /* INPUT AREA - Fixed at bottom */
+        /* INPUT AREA - Imepandishwa juu zaidi */
         .input-wrapper {{ 
-            padding: 20px 15% 30px 15%; background: white; flex-shrink: 0;
+            position: fixed;
+            bottom: 30px; /* Ipawe juu kidogo toka chini kabisa */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            max-width: 800px;
+            z-index: 1000;
+            background: transparent;
         }}
         .input-box {{
-            display: flex; background: #f0f4f9; padding: 8px 25px; 
-            border-radius: 35px; align-items: center; border: 1px solid transparent;
+            display: flex; background: #f0f4f9; padding: 10px 25px; 
+            border-radius: 40px; align-items: center; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
         }}
-        .input-box:focus-within {{ background: white; border-color: #d1d5db; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }}
+        input {{ flex: 1; border: none; background: transparent; outline: none; font-size: 16px; padding: 10px; }}
         
-        input {{ flex: 1; border: none; background: transparent; outline: none; font-size: 16px; padding: 12px; }}
-        #send-btn {{ cursor: pointer; font-size: 26px; color: var(--gemini-blue); border: none; background: none; }}
+        .message {{ margin-bottom: 25px; max-width: 85%; line-height: 1.7; font-size: 16px; }}
+        .user-message {{ align-self: flex-end; background: #f0f4f9; padding: 15px 22px; border-radius: 22px 22px 4px 22px; }}
+        .assistant-message {{ align-self: flex-start; border-left: 4px solid var(--gemini-blue); padding-left: 15px; }}
 
-        /* Menu Button for Mobile */
-        #menu-toggle {{ display: none; font-size: 24px; cursor: pointer; background: none; border: none; color: #444; }}
-
-        /* RESPONSIVE DESIGN */
         @media (max-width: 768px) {{
-            #menu-toggle {{ display: block; }}
-            .sidebar {{ position: absolute; left: -270px; height: 100%; box-shadow: 5px 0 15px rgba(0,0,0,0.05); }}
-            .sidebar.active {{ left: 0; }}
-            .chat-container {{ padding: 20px 5%; }}
-            .input-wrapper {{ padding: 15px 5% 25px 5%; }}
-            .message {{ max-width: 92%; font-size: 15px; }}
-            .logo-text {{ font-size: 1.1rem; }}
+            .chat-container {{ padding: 20px 5% 120px 5%; }}
+            .input-wrapper {{ width: 90%; bottom: 20px; }}
         }}
     </style>
 </head>
 <body>
 
-    <div class="app-wrapper">
-        <div class="sidebar" id="sidebar">
-            <button style="background:white; border:1px solid #ddd; padding:12px; border-radius:25px; cursor:pointer; font-weight:600; margin-bottom:20px;" onclick="location.reload()">✨ New Chat</button>
-            <div id="history-list"></div>
-        </div>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <h3 style="margin-top:0;">Menu</h3>
+        <button style="background:white; border:1px solid #ddd; padding:12px; border-radius:25px; cursor:pointer; font-weight:600;" onclick="location.reload()">✨ New Chat</button>
+        <div id="history-list" style="margin-top:20px;"></div>
+    </div>
 
+    <div class="app-wrapper">
         <div class="main-content">
             <div class="chat-header">
-                <button id="menu-toggle">☰</button>
-                <span class="logo-text">KONDOWE AI PRO</span>
+                <button id="menu-btn">☰</button>
+                <b style="font-size:1.2rem; background: linear-gradient(to right, #4285F4, #EA4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">KONDOWE AI PRO</b>
             </div>
 
             <div class="chat-container" id="chat-container">
-                <div id="welcome-screen" style="text-align:center; margin-top:10vh;">
-                    <h1 style="font-size: 2.2rem; background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:700;">Nikupe msaada gani leo?</h1>
+                <div id="welcome-screen" style="text-align:center; margin-top:15vh;">
+                    <h1 style="color:#444; font-size:2rem;">Nikupe msaada gani?</h1>
                 </div>
             </div>
 
             <div class="input-wrapper">
                 <div class="input-box">
                     <input type="text" id="user-input" placeholder="Uliza chochote..." autocomplete="off">
-                    <button id="send-btn">➤</button>
+                    <button id="send-btn" style="border:none; background:none; color:var(--gemini-blue); font-size:26px; cursor:pointer;">➤</button>
                 </div>
             </div>
         </div>
@@ -147,7 +161,19 @@ html_code = f"""
 
     <script>
         const sidebar = document.getElementById('sidebar');
-        document.getElementById('menu-toggle').onclick = () => sidebar.classList.toggle('active');
+        const overlay = document.getElementById('overlay');
+        const menuBtn = document.getElementById('menu-btn');
+
+        // Fungua/Funga Sidebar
+        menuBtn.onclick = () => {{
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        }};
+
+        overlay.onclick = () => {{
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        }};
 
         const _client = supabase.createClient("{SUPABASE_URL}", "{SUPABASE_KEY}");
         
@@ -159,9 +185,6 @@ html_code = f"""
             document.getElementById('welcome-screen').style.display = 'none';
             appendMsg(msg, 'user');
             input.value = '';
-            
-            // Ficha sidebar kwenye simu baada ya kutuma
-            if(window.innerWidth < 768) sidebar.classList.remove('active');
 
             try {{
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {{
@@ -185,10 +208,7 @@ html_code = f"""
                             try {{
                                 const json = JSON.parse(line.substring(6));
                                 const content = json.choices[0].delta.content;
-                                if (content) {{ 
-                                    fullText += content; 
-                                    botDiv.innerText = fullText; 
-                                }}
+                                if (content) {{ fullText += content; botDiv.innerText = fullText; }}
                             }} catch(e) {{}}
                         }}
                     }});
