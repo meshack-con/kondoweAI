@@ -1,37 +1,29 @@
 import streamlit as st
 import streamlit.components.v1 as components
-import os
 
-# 1. Sanidi Ukurasa (Page Config)
+# 1. Sanidi Ukurasa
 st.set_page_config(page_title="KONDOWE AI PRO", layout="wide", initial_sidebar_state="collapsed")
 
-# 2. Ficha Header na Footer ya Streamlit ili kupata muonekano safi
+# 2. Ficha vitu vya Streamlit ili kupata muonekano safi wa Web App
 st.markdown("""
     <style>
         .block-container { padding: 0 !important; max-width: 100% !important; height: 100vh !important; overflow: hidden !important; }
         header, footer { visibility: hidden !important; }
         iframe { height: 100vh !important; width: 100vw !important; border: none; overflow: hidden !important; }
+        #root > div:nth-child(1) > div > div > div { height: 100vh !important; }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. KUSOMA SECRETS (Hapa ndipo penye marekebisho muhimu)
+# 3. Credentials kutoka kwenye secrets.toml (Salama kwa GitHub)
 try:
-    # Tunakagua kama keys zipo kwenye st.secrets (ambazo zinatoka kwenye secrets.toml yako)
-    if "GROQ_API_KEY" in st.secrets:
-        SUPABASE_URL = st.secrets["SUPABASE_URL"]
-        SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
-        GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-    else:
-        st.error("❌ File la 'secrets.toml' limeonekana lakini halina data sahihi ndani yake!")
-        st.info("Hakikisha ndani ya file la secrets.toml kodi imeandikwa hivi:\n\nGROQ_API_KEY = '...' \nSUPABASE_URL = '...' \nSUPABASE_KEY = '...' ")
-        st.stop()
+    SUPABASE_URL = st.secrets["SUPABASE_URL"]
+    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 except Exception as e:
-    st.error("❌ Duh! Streamlit haioni file lako la siri (secrets.toml).")
-    st.markdown(f"**Tatizo:** `{str(e)}`")
-    st.info("Hakikisha folder la `.streamlit` liko sehemu moja na hili file la `app.py`.")
+    st.error("Duh! Secrets hazijaonekana. Hakikisha file la .streamlit/secrets.toml lipo na lina data sahihi.")
     st.stop()
 
-# 4. KODI YA INTERFACE (HTML/CSS/JS)
+# 4. HTML/CSS/JS Interface
 html_code = f"""
 <!DOCTYPE html>
 <html lang="sw">
@@ -46,75 +38,85 @@ html_code = f"""
             --sidebar-bg: #f0f4f9;
         }}
 
+        /* Page Layout & Scroll Control */
         body, html {{ 
             margin: 0; padding: 0; height: 100vh; width: 100vw; 
             overflow: hidden; font-family: 'Outfit', sans-serif; 
             background-color: #ffffff;
         }}
 
-        .app-wrapper {{ display: flex; height: 100vh; width: 100vw; }}
+        .app-wrapper {{ display: flex; height: 100vh; width: 100vw; overflow: hidden; }}
 
         /* Sidebar */
         .sidebar {{
             width: 270px; background: var(--sidebar-bg); padding: 20px;
             display: flex; flex-direction: column; border-right: 1px solid #e3e3e3;
-            flex-shrink: 0;
+            flex-shrink: 0; overflow-y: auto;
         }}
 
         .new-chat-btn {{
             background: linear-gradient(135deg, #4285F4, #1a73e8); 
-            color: white; border: none; padding: 14px; 
-            border-radius: 25px; font-weight: 600; cursor: pointer; 
-            margin-bottom: 25px; transition: 0.3s;
-            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.2);
+            color: white; border: none; padding: 14px; border-radius: 25px; 
+            font-weight: 600; cursor: pointer; margin-bottom: 25px; 
+            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.2); transition: 0.3s;
         }}
+        .new-chat-btn:hover {{ transform: translateY(-2px); box-shadow: 0 6px 15px rgba(66, 133, 244, 0.3); }}
 
         /* Main Area */
         .main-content {{ flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }}
 
+        /* Header */
         .chat-header {{
             padding: 15px 30px; background: white; border-bottom: 1px solid #f0f0f0;
-            display: flex; align-items: center;
+            display: flex; align-items: center; flex-shrink: 0;
         }}
-
         .logo-text {{ 
             font-weight: 800; font-size: 1.4rem; 
             background: linear-gradient(to right, var(--gemini-blue), var(--gemini-red), var(--gemini-yellow), var(--gemini-green));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }}
 
-        /* Chat Container (Scrolling Area) */
+        /* CHAT CONTAINER: Hapa pekee ndipo panascroll */
         .chat-container {{
             flex: 1; overflow-y: auto; padding: 20px 15%; 
-            display: flex; flex-direction: column; background: white;
+            display: flex; flex-direction: column; scroll-behavior: smooth;
         }}
 
-        .message {{ margin-bottom: 30px; max-width: 85%; line-height: 1.7; font-size: 16px; }}
+        .chat-container::-webkit-scrollbar {{ width: 6px; }}
+        .chat-container::-webkit-scrollbar-thumb {{ background: #e0e0e0; border-radius: 10px; }}
+
+        .welcome-screen h1 {{
+            font-size: 2.8rem; font-weight: 700; text-align: center; margin-top: 10vh;
+            background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }}
+
+        /* Messages */
+        .message {{ margin-bottom: 30px; max-width: 85%; line-height: 1.7; font-size: 16px; position: relative; }}
         
         .user-message {{ 
-            align-self: flex-end; background: #f0f4f9; color: #1f1f1f; 
-            padding: 15px 25px; border-radius: 25px 25px 4px 25px;
-            border-left: 4px solid var(--gemini-blue);
+            align-self: flex-end; background: #f0f4f9; padding: 15px 25px; 
+            border-radius: 25px 25px 4px 25px; border-left: 4px solid var(--gemini-blue);
         }}
 
         .assistant-message {{ 
-            align-self: flex-start; color: #1f1f1f; padding-left: 15px;
+            align-self: flex-start; color: #1f1f1f; padding: 10px 0 10px 15px;
             border-left: 4px solid transparent;
             border-image: linear-gradient(to bottom, var(--gemini-blue), var(--gemini-red), var(--gemini-yellow), var(--gemini-green)) 1;
         }}
 
-        /* Input Box */
-        .input-wrapper {{ padding: 20px 15%; background: white; }}
+        /* Input Area */
+        .input-wrapper {{ padding: 20px 15%; background: white; flex-shrink: 0; }}
         .input-box {{
-            display: flex; background: #f0f4f9; padding: 10px 25px; 
-            border-radius: 35px; align-items: center; border: 1px solid transparent;
+            display: flex; background: #f0f4f9; padding: 8px 25px; 
+            border-radius: 35px; align-items: center; transition: 0.3s;
         }}
-        .input-box:focus-within {{ background: white; border-color: #d1d5db; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }}
+        .input-box:focus-within {{ background: white; border: 1px solid #d1d5db; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }}
         
-        input {{ flex: 1; border: none; background: transparent; outline: none; font-size: 16px; padding: 10px; color: #111; }}
+        input {{ flex: 1; border: none; background: transparent; outline: none; font-size: 16px; padding: 12px; }}
         #send-btn {{ cursor: pointer; font-size: 26px; color: var(--gemini-blue); border: none; background: none; }}
 
-        /* Colorful Spinner */
+        /* Colorful Loader */
         #loader {{ display: none; margin-bottom: 15px; padding-left: 15%; }}
         .gemini-loader {{
             width: 25px; height: 25px; border: 4px solid #f3f3f3;
@@ -124,11 +126,12 @@ html_code = f"""
         }}
         @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
 
-        .history-item {{ padding: 12px; cursor: pointer; border-radius: 12px; font-size: 14px; margin-bottom: 5px; }}
-        .history-item:hover {{ background: #e2e7ed; }}
+        .history-item {{ padding: 12px; cursor: pointer; border-radius: 12px; font-size: 14px; margin-bottom: 5px; transition: 0.2s; }}
+        .history-item:hover {{ background: #e2e7ed; color: var(--gemini-blue); font-weight: 600; }}
     </style>
 </head>
 <body>
+
     <div class="app-wrapper">
         <div class="sidebar">
             <button class="new-chat-btn" id="new-chat-btn">✨ New Chat</button>
@@ -136,17 +139,22 @@ html_code = f"""
         </div>
 
         <div class="main-content">
-            <div class="chat-header"><span class="logo-text">KONDOWE AI PRO</span></div>
+            <div class="chat-header">
+                <span class="logo-text">KONDOWE AI PRO</span>
+            </div>
+
             <div class="chat-container" id="chat-container">
-                <div id="welcome-screen" style="text-align:center; margin-top:10vh;">
-                    <h1 style="background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.8rem; font-weight:700;">Habari, Naitwa Kondowe AI</h1>
-                    <p style="color: #5f6368; font-size: 1.2rem;">Mimi ni msaidizi wako, nikupe msaada gani?</p>
+                <div id="welcome-screen">
+                    <h1>Habari, Naitwa Kondowe AI</h1>
+                    <p style="text-align:center; color: #5f6368;">Nikupe msaada gani leo?</p>
                 </div>
             </div>
+
             <div id="loader"><div class="gemini-loader"></div></div>
+
             <div class="input-wrapper">
                 <div class="input-box">
-                    <input type="text" id="user-input" placeholder="Uliza chochote hapa..." autocomplete="off">
+                    <input type="text" id="user-input" placeholder="Uliza chochote..." autocomplete="off">
                     <button id="send-btn">➤</button>
                 </div>
             </div>
@@ -159,7 +167,11 @@ html_code = f"""
 
         async function startNewChat() {{
             currentChatId = null;
-            document.getElementById('chat-container').innerHTML = `<div style="text-align:center; margin-top:10vh;"><h1 style="color:#444;">Chat Mpya</h1><p>Nipe swali lako la kwanza.</p></div>`;
+            document.getElementById('chat-container').innerHTML = `
+                <div style="text-align:center; margin-top:10vh;">
+                    <h1 style="background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem; font-weight:700;">Chat Mpya</h1>
+                    <p style="color: #5f6368;">Anza kuuliza maswali yako hapa.</p>
+                </div>`;
         }}
 
         async function sendMessage() {{
@@ -243,5 +255,5 @@ html_code = f"""
 </html>
 """
 
-# 5. Onyesha Kazi (Render HTML)
+# 5. Onyesha Kazi
 components.html(html_code, height=1200)
