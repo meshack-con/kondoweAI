@@ -86,7 +86,7 @@ html_code = f"""
         /* INPUT AREA */
         .input-wrapper {{ 
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 75%; max-width: 800px; z-index: 1000; transition: bottom 0.3s ease;
+            width: 75%; max-width: 800px; z-index: 1000; transition: bottom 0.2s ease-out;
         }}
 
         .input-box {{
@@ -102,8 +102,8 @@ html_code = f"""
 
         @media (max-width: 768px) {{
             .welcome-title {{ font-size: 2.2rem; }}
-            .chat-container {{ padding: 20px 5% 180px 5%; }}
-            .input-wrapper {{ width: 92%; }}
+            .chat-container {{ padding: 20px 5% 120px 5%; }}
+            .input-wrapper {{ width: 92%; bottom: 20px; }}
         }}
     </style>
 </head>
@@ -146,15 +146,14 @@ html_code = f"""
         document.getElementById('menu-btn').onclick = () => {{ sidebar.classList.add('active'); overlay.classList.add('active'); }};
         overlay.onclick = () => {{ sidebar.classList.remove('active'); overlay.classList.remove('active'); }};
 
-        // KEYBOARD LOGIC: Inapanda kwenye SIMU TU
+        // KODI MPYA YA KUPANDA KWA SIMU TU
         userInput.addEventListener('focus', () => {{
             if (window.innerWidth <= 768) {{
-                inputWrap.style.bottom = '300px'; 
+                inputWrap.style.bottom = '100px'; // Imepunguzwa kutoka 300px ili iwe juu ya keyboard tu
             }}
         }});
 
         userInput.addEventListener('blur', () => {{
-            inputWrap.style.bottom = '30vh'; // Inarudi sehemu yake ya asili 30px
             if (window.innerWidth <= 768) {{
                 inputWrap.style.bottom = '20px';
             }} else {{
@@ -171,7 +170,7 @@ html_code = f"""
             document.getElementById('welcome-screen').style.display = 'none';
             appendMsg(msg, 'user');
             userInput.value = '';
-            userInput.blur();
+            // userInput.blur(); // Ondoa hii kama unataka keyboard ibaki wazi baada ya kutuma
 
             try {{
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {{
