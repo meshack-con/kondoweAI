@@ -75,29 +75,19 @@ html_code = f"""
             scroll-behavior: smooth; background: white;
         }}
 
-        /* WELCOME TEXT STYLING */
+        /* WELCOME TEXT */
         .welcome-title {{
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 5px;
+            font-size: 3.5rem; font-weight: 700; margin-bottom: 5px;
             background: linear-gradient(90deg, #4285F4, #9b72cb, #d96570, #FBBC05);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -1px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }}
-        .welcome-subtitle {{
-            font-size: 1.2rem;
-            color: #757575;
-            font-weight: 400;
-        }}
+        .welcome-subtitle {{ font-size: 1.2rem; color: #757575; font-weight: 400; }}
 
         /* INPUT AREA */
         .input-wrapper {{ 
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-            width: 75%; max-width: 800px; z-index: 1000; transition: all 0.3s ease;
+            width: 75%; max-width: 800px; z-index: 1000; transition: bottom 0.3s ease;
         }}
-        
-        .input-wrapper.raised {{ bottom: 350px !important; }}
 
         .input-box {{
             display: flex; background: #f0f4f9; padding: 10px 25px; 
@@ -114,7 +104,6 @@ html_code = f"""
             .welcome-title {{ font-size: 2.2rem; }}
             .chat-container {{ padding: 20px 5% 180px 5%; }}
             .input-wrapper {{ width: 92%; }}
-            .input-wrapper.raised {{ bottom: 310px !important; }}
         }}
     </style>
 </head>
@@ -157,8 +146,21 @@ html_code = f"""
         document.getElementById('menu-btn').onclick = () => {{ sidebar.classList.add('active'); overlay.classList.add('active'); }};
         overlay.onclick = () => {{ sidebar.classList.remove('active'); overlay.classList.remove('active'); }};
 
-        userInput.onfocus = () => {{ inputWrap.classList.add('raised'); }};
-        userInput.onblur = () => {{ setTimeout(() => inputWrap.classList.remove('raised'), 200); }};
+        // KEYBOARD LOGIC: Inapanda kwenye SIMU TU
+        userInput.addEventListener('focus', () => {{
+            if (window.innerWidth <= 768) {{
+                inputWrap.style.bottom = '300px'; 
+            }}
+        }});
+
+        userInput.addEventListener('blur', () => {{
+            inputWrap.style.bottom = '30vh'; // Inarudi sehemu yake ya asili 30px
+            if (window.innerWidth <= 768) {{
+                inputWrap.style.bottom = '20px';
+            }} else {{
+                inputWrap.style.bottom = '30px';
+            }}
+        }});
 
         const _client = supabase.createClient("{SUPABASE_URL}", "{SUPABASE_KEY}");
         
